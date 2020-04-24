@@ -6,34 +6,43 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!--<script src="/socket.io/socket.io.js"></script>-->
+
+    <script src="linearSearchPrefixQueryer.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-primary">
         <span class="navbar-brand">preSense</span>
     </nav>
-    <div class="container mt-3">
-        <input type="text" placeholder="🔍 Search" class="form-control">
-        <div class="d-flex flex-row-reverse mt-1"><div class="dropdown">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Sort</button>
-            <div class="dropdown-menu">
-                <button class="dropdown-item active">Alphabetical</button>
-                <button class="dropdown-item">Avaliability</button>
+    <div id="app" class="container mt-3">
+        <input type="text" placeholder="🔍 Search" class="form-control" v-model="query">
+        <div class="d-flex flex-row-reverse mt-1">
+            <div class="dropdown">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Sort</button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <button class="dropdown-item" v-bind:class="{active: !sortByAvailability}" v-on:click="sortByAvailability = false">Alphabetical</button>
+                    <button class="dropdown-item" v-bind:class="{active: sortByAvailability}" v-on:click="sortByAvailability = true">Avaliability</button>
+                </div>
             </div>
-        </div></div>
-        <div id="rooms" class="mt-3">
-            <!--Begin placeholder-->
-            <div class="card shadow mt-1"><div class="card-body clearfix">
-                Practice Room A <span class="float-right text-success font-weight-bold">Available ●</span>
-            </div></div>
-            <div class="card shadow mt-1"><div class="card-body clearfix">
-                Practice Room B <span class="float-right text-danger font-weight-bold">Occupied ●</span>
-            </div></div>
-            <!--end placeholder-->
-            <div id="spinner" class="d-flex justify-content-center"><div class="spinner-border"></div></div>
         </div>
+        <div v-if="tree" class="mt-3">
+            <div v-for="room in filteredRoomsList" v-bind:key="room[0]" class="card shadow mt-1">
+                <div class="card-body clearfix">
+                    {{ room[0] }}
+                    <span v-if="room[1]" class="float-right font-weight-bold text-success">Available ●</span>
+                    <span v-else         class="float-right font-weight-bold text-danger">Occupied ●</span>
+                </div>
+            </div>
+            <p v-if="filteredRoomsList.length == 0" class="text-secondary text-center">
+                <em>No rooms with that name.</em>
+            </p>
+        </div>
+        <div v-else class="d-flex justify-content-center"><div class="spinner-border"></div></div>
     </div>
+    <script src="page.js"></script>
 </body>
 </html>
