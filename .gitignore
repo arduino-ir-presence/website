@@ -1,6 +1,11 @@
 
-# Elastic Beanstalk Files
+#miscellaneous
 .DS_Store
+
+#Python virtual environment
+venv/
+
+# Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
