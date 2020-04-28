@@ -2,15 +2,32 @@ from flask import Flask, request
 from flask_socketio import SocketIO
 from config import dblogin
 
-application = Flask(__name__)
-application.config['SECRET_KEY'] = 'asdf!'
-socketio = SocketIO(application)
+import mysql.connector
+from mysql.connector import errorcode
 
-@application.route('/')
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'asdf!'
+socketio = SocketIO(app)
+
+def try_db_login():
+    try:
+      cnx = mysql.connector.connect(**dblogin())
+      cnx.close()
+      return "Hello World! Success"
+
+    except mysql.connector.Error as err:
+      if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        return "Something is wrong with your username or password"
+      elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        return "Database does not exist"
+      else:
+        return str(err)
+
+@app.route('/')
 def hello_world():
-    return dblogin()['user']
+    return try_db_login()
 
-@application.route('/updateRoomStatus', methods=['POST'])
+@app.route('/updateRoomStatus', methods=['POST'])
 def upload_data():
     id = request.form.getlist('secretID')[0]
     occupied = request.form.getlist('occupancy')[0]
@@ -19,8 +36,8 @@ def upload_data():
 @socketio.on('connect')
 def connect():
     print('Connection aquired :D')
-     
+
 if __name__ == '__main__':
-    socketio.run(application)
-    application.debug = True
-    application.run()
+    socketio.run(app)
+    app.debug = True
+    app.run()
