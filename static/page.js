@@ -43,13 +43,14 @@ var vm = new Vue({
     }
 });
 
-//const socket = io();
+const socket = io();
 
-/*
+
 socket.on('initialData', function (roomsData) {
-    vm.tree = new Trie(roomsData);
+    //vm.tree = new Trie(roomsData);
+    console.log("SocketIO works: ", roomsData);
 });
-
+/*
 socket.on('update', function (roomData) {
     vm.tree.setValue(roomData[0], roomData[1]);
 });
