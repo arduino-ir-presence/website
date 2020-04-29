@@ -26,17 +26,17 @@ def try_db_login():
       else:
         return str(err)
 
-def update_table(data_entry):
+def update_table(isOccupied, secretId):
     global db_cnx
     cursor = db_cnx.cursor()
     query = ("USE room_occupancy")
     cursor.execute(query)
 
-    query = ("UPDATE `rooms`"
-                "SET `isOccupied` = %s"
+    query = ("UPDATE `rooms` "
+                "SET `isOccupied` = %s "
                 "WHERE `secretId` = %s")
 
-    cursor.execute(query, data_entry)
+    cursor.execute(query, (isOccupied, secretId))
     db_cnx.commit()
     cursor.close()
 
@@ -74,9 +74,9 @@ def upload_data():
         return
 
     if (occupied == "true"):
-        update_table((True, id))
+        update_table(True, id)
     elif (occupied == "false"):
-        update_table((False, id))
+        update_table(False, id)
     else: 
         return
 
