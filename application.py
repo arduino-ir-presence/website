@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request
 from flask_socketio import SocketIO
 from config import dblogin
 
@@ -11,9 +11,9 @@ socketio = SocketIO(app)
 
 def try_db_login():
     try:
-      #cnx = mysql.connector.connect(**dblogin())
-      #cnx.close()
-      return render_template('index.html', room=[('apples', True), ('pears', False)])
+      cnx = mysql.connector.connect(**dblogin())
+      cnx.close()
+      return "Hello World! Success"
 
     except mysql.connector.Error as err:
       if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -25,7 +25,7 @@ def try_db_login():
 
 @app.route('/')
 def hello_world():
-    return try_db_login()
+    return app.send_static_file("index.html")
 
 @app.route('/updateRoomStatus', methods=['POST'])
 def upload_data():
@@ -35,6 +35,7 @@ def upload_data():
 
 @socketio.on('connect')
 def connect():
+    print('Connection aquired :D')
     socketio.emit('initialData', [('apples', True), ('pears', False)])
 
 if __name__ == '__main__':
