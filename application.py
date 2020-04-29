@@ -49,10 +49,24 @@ def query_rooms():
     query = ("SELECT `name`, `isOccupied` FROM `rooms`")
     cursor.execute(query)
 
-    tuples = cursor.fetchall()
     db_cnx.commit()
+    tuples = cursor.fetchall()
     cursor.close()
     return tuples
+
+def name_from_uuid(uuid):
+    global db_cnx
+    cursor = db_cnx.cursor()
+    query = ("USE room_occupancy")
+    cursor.execute(query)
+
+    query = ("SELECT `name` FROM `rooms` WHERE `secretId` = %s")
+    cursor.execute(query, (uuid,))
+
+    db_cnx.commit()
+    tuples = cursor.fetchall()
+    cursor.close()
+    return tuples[0][0]
 
 #https://stackoverflow.com/questions/19989481/how-to-determine-if-a-string-is-a-valid-v4-uuid
 def is_valid_uuid(val):
@@ -71,16 +85,18 @@ def upload_data():
     id = request.form.getlist('secretId')[0]
     occupied = request.form.getlist('isOccupied')[0]
     if (not is_valid_uuid(id)):
-        return
+        return "Bad secretId format"
 
     if (occupied == "true"):
         update_table(True, id)
     elif (occupied == "false"):
         update_table(False, id)
     else: 
-        return
+        return "Bad isOccupied status"
 
-    socketio.emit('update', (id, occupied))
+    room_name = name_from_uuid(id)
+    socketio.emit('update', (room_name, occupied))
+    return "Success"
 
 @socketio.on('connect')
 def connect():
