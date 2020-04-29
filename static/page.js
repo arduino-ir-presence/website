@@ -1,8 +1,8 @@
-var demoTree = new LinearSearchPrefixQueryer([
+var demoData = [
     ['Practice Room A', true],
     ['Practice Room B', false],
     ['Practice Room C', true]
-]);
+];
 
 var vm = new Vue({
     el: '#app',
@@ -13,7 +13,7 @@ var vm = new Vue({
     },
     computed: {
         filteredRoomsList: function () {
-            var roomsAlphabetical = this.tree.searchPrefix(this.query);
+            var roomsAlphabetical = this.tree.searchPrefix(sanitizeKey(this.query));
             if (!this.sortByAvailability) {
                 return roomsAlphabetical;
             }
@@ -43,15 +43,27 @@ var vm = new Vue({
     }
 });
 
+function sanitizeKey(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function loadData(roomsData) {
+    console.log("Loading Data");
+    var tree = new Trie();
+    for (var i = 0; i < roomsData.length; i++) {
+        var data = roomsData[i];
+        var key = sanitizeKey(data[0]);
+        tree.update(key, data, true);
+    }
+    vm.tree = tree;
+    console.log("Done Loading");
+}
+
 const socket = io();
 
+socket.on('initialData', loadData);
 
-socket.on('initialData', function (roomsData) {
-    //vm.tree = new Trie(roomsData);
-    console.log("SocketIO works: ", roomsData);
-});
-/*
 socket.on('update', function (roomData) {
-    vm.tree.setValue(roomData[0], roomData[1]);
+    var data = vm.tree.getValue(sanitizeKey(roomData[0]), false);
+    Vue.set(data, 1, roomData[1]);
 });
-*/
