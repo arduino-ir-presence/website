@@ -10,11 +10,13 @@ import uuid
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'asdf!'
 socketio = SocketIO(app)
+db_cnx = None
 
 def try_db_login():
     try:
       global db_cnx
       db_cnx = mysql.connector.connect(**dblogin())
+      return "Successful"
 
     except mysql.connector.Error as err:
       if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -23,9 +25,6 @@ def try_db_login():
         return "Database does not exist"
       else:
         return str(err)
-
-    else:
-        return "DB connection successful"
 
 def update_table(data_entry):
     cursor = db_cnx.cursor()
