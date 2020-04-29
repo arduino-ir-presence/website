@@ -5,6 +5,8 @@ from config import dblogin
 import mysql.connector
 from mysql.connector import errorcode
 
+import uuid
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'asdf!'
 socketio = SocketIO(app)
@@ -25,16 +27,39 @@ def try_db_login():
     else:
         return "DB connection successful"
 
-def update_table():
-    return 0
+def update_table(data_entry):
+    cursor = db_cnx.cursor()
+    query = ("USE room_occupancy")
+    cursor.execute(query)
+
+    query = ("UPDATE `rooms`"
+                "SET `isOccupied` = %s"
+                "WHERE `secretId` = %s")
+
+    cursor.execute(query, data_entry)
+    db_cnx.commit()
+    cursor.close()
 
 def query_rooms():
     cursor = db_cnx.cursor()
+    query = ("USE room_occupancy")
+    cursor.execute(query)
+
     query = ("SELECT `name`, `isOccupied` FROM `rooms`")
     cursor.execute(query)
+
     tuples = cursor.fetchall()
+    db_cnx.commit()
     cursor.close()
     return tuples
+
+#https://stackoverflow.com/questions/19989481/how-to-determine-if-a-string-is-a-valid-v4-uuid
+def is_valid_uuid(val):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
 
 @app.route('/')
 def hello_world():
@@ -44,7 +69,11 @@ def hello_world():
 def upload_data():
     id = request.form.getlist('secretId')[0]
     occupied = request.form.getlist('isOccupied')[0]
-    return '''Room ID: {} is currently occupied: {}\n'''.format(id, occupied)
+    if (not is_valid_uuid(id)):
+        return
+    if (occupied != "true" or occupied != "false"):
+        return
+    update_table((occupied, id))
 
 @socketio.on('connect')
 def connect():
