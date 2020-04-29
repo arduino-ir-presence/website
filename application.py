@@ -11,9 +11,8 @@ socketio = SocketIO(app)
 
 def try_db_login():
     try:
-      cnx = mysql.connector.connect(**dblogin())
-      cnx.close()
-      return "Hello World! Success"
+      global db_cnx
+      db_cnx = mysql.connector.connect(**dblogin())
 
     except mysql.connector.Error as err:
       if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -23,22 +22,39 @@ def try_db_login():
       else:
         return str(err)
 
+    else:
+        return "DB connection successful"
+
+def update_table():
+    return 0
+
+def query_rooms():
+    cursor = db_cnx.cursor()
+    query = ("SELECT `name`, `isOccupied` FROM `rooms`")
+    cursor.execute(query)
+    tuples = cursor.fetchall()
+    cursor.close()
+    return tuples
+
 @app.route('/')
 def hello_world():
     return app.send_static_file("index.html")
 
 @app.route('/updateRoomStatus', methods=['POST'])
 def upload_data():
-    id = request.form.getlist('secretID')[0]
-    occupied = request.form.getlist('occupancy')[0]
+    id = request.form.getlist('secretId')[0]
+    occupied = request.form.getlist('isOccupied')[0]
     return '''Room ID: {} is currently occupied: {}\n'''.format(id, occupied)
 
 @socketio.on('connect')
 def connect():
-    print('Connection aquired :D')
-    socketio.emit('initialData', [('apples', True), ('pears', False)])
+    socketio.emit('initialData', query_rooms())
 
 if __name__ == '__main__':
     socketio.run(app)
+    print(try_db_login())
     app.debug = True
-    app.run()
+    try:
+        app.run()
+    finally:
+        db_cnx.close()
