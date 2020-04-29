@@ -10,7 +10,7 @@ import uuid
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'asdf!'
 socketio = SocketIO(app)
-db_cnx = None
+db_cnx = mysql.connector.connect(**dblogin())
 
 def try_db_login():
     try:
@@ -27,6 +27,7 @@ def try_db_login():
         return str(err)
 
 def update_table(data_entry):
+    global db_cnx
     cursor = db_cnx.cursor()
     query = ("USE room_occupancy")
     cursor.execute(query)
@@ -40,6 +41,7 @@ def update_table(data_entry):
     cursor.close()
 
 def query_rooms():
+    global db_cnx
     cursor = db_cnx.cursor()
     query = ("USE room_occupancy")
     cursor.execute(query)
@@ -70,9 +72,14 @@ def upload_data():
     occupied = request.form.getlist('isOccupied')[0]
     if (not is_valid_uuid(id)):
         return
-    if (occupied != "true" and occupied != "false"):
+
+    if (occupied == "true"):
+        update_table((True, id))
+    elif (occupied == "false"):
+        update_table((False, id))
+    else: 
         return
-    update_table((occupied, id))
+
     socketio.emit('update', (id, occupied))
 
 @socketio.on('connect')
@@ -81,7 +88,7 @@ def connect():
 
 if __name__ == '__main__':
     socketio.run(app)
-    print(try_db_login())
+
     app.debug = True
     try:
         app.run()
