@@ -71,9 +71,10 @@ def upload_data():
     occupied = request.form.getlist('isOccupied')[0]
     if (not is_valid_uuid(id)):
         return
-    if (occupied != "true" or occupied != "false"):
+    if (occupied != "true" and occupied != "false"):
         return
     update_table((occupied, id))
+    socketio.emit('update', (id, occupied))
 
 @socketio.on('connect')
 def connect():
