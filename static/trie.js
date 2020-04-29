@@ -5,9 +5,6 @@ class _TrieNode {
     // value: Any (optional)
 
     getChildForLabel(label, createIfNotExist) {
-        //if (createIfNotExist) console.log("Find/Create ", label, " among ", this.childLabels)
-        //else console.log("Find ", label, " among ", this.childLabels)
-        
         if (this.childLabels == null) {
             if (!createIfNotExist) {
                 return null;
@@ -19,31 +16,33 @@ class _TrieNode {
         }
 
         var index = _binarySearch(label, this.childLabels, 0, this.childLabels.length-1);
-        
-        //If the label exists, return the corresponding node
+
+        // If the label exists, return the corresponding node
         if (this.childLabels[index] == label) {
             return this.childNodes[index];
         }
-        
-        //If it doesn't exist, create a node for it if the caller wanted so
+
+        // If it doesn't exist, create a node for it if the caller wanted that
         else if (createIfNotExist) {
             var newChildNode = new _TrieNode();
             newChildNode.parent = this;
 
-            //splice(index, howManyToReplace, insertData)  
+            // splice(index, howManyToReplace, insertData)
             this.childNodes.splice(index, 0, newChildNode);
             this.childLabels.splice(index, 0, label);
             return newChildNode;
         }
 
-        else return null;
+        else {
+            return null;
+        }
     }
 }
 
 class Trie {
-    // root: _TrieNode;
-    // lastPrefixNode: _TrieNode;
-    // lastPrefixKey: String;
+    // root: _TrieNode
+    // lastPrefixNode: _TrieNode
+    // lastPrefixKey: String
 
     constructor() {
         this.root = new _TrieNode();
@@ -55,9 +54,9 @@ class Trie {
         var list = [];
         var curr = this.root;
         var prefixNode = this._find(prefix, false, true);
-        if (prefixNode != null) {
+        if (prefixNode != null)
             this._getSubtreeValues(prefixNode, list);
-        }
+
         return list;
     }
 
@@ -77,7 +76,7 @@ class Trie {
             for (var i = 0; i < targetKey.length; i++) {
                 curNode = curNode.getChildForLabel(targetKey[i], true);
             }
-            return curNode
+            return curNode;
         }
 
         // go up sufficiently
@@ -93,14 +92,15 @@ class Trie {
             this.lastPrefixKey = "";
         }
         // by this point, lastPrefixNode is an ancestor of the target node
-        
+
         // go down sufficiently
         while (targetKey.length > this.lastPrefixKey.length) {
             var nextLetter = targetKey[this.lastPrefixKey.length];
             var nextChild = this.lastPrefixNode.getChildForLabel(nextLetter, createIfNotExist);
-            if (nextChild === null) {
+
+            if (nextChild === null)
                 return null;
-            }
+
             this.lastPrefixNode = nextChild;
             this.lastPrefixKey += nextLetter;
         }
@@ -108,39 +108,41 @@ class Trie {
         return this.lastPrefixNode;
     }
 
-    _getSubtreeValues(currNode, list) { 
-        if (currNode.value != null) { //if node has value 
+    _getSubtreeValues(currNode, list) {
+        if (currNode.value != null) // if node has a value
             list.push(currNode.value);
-        }
-        if (currNode.childLabels === undefined) { //leaf node
+
+        if (currNode.childLabels === undefined) // leaf node
             return;
-        }
-        for (var i = 0; i < currNode.childLabels.length; i++) { //recurse into each child
+
+        for (var i = 0; i < currNode.childLabels.length; i++) { // recurse into each child
             this._getSubtreeValues(currNode.childNodes[i], list);
         }
-        
     }
 }
 
 function _binarySearch(elem, arr, startIndex, endIndex) {
-    if (arr == null) {
+    if (arr == null)
         return null;
-    }
-    if (arr.length == 0) {
+
+    if (arr.length == 0)
         return 0;
-    }
 
     var median = Math.floor((startIndex+endIndex) / 2);
     if (arr[median] == elem) {
         return median;
     }
     else if (arr[median] > elem) {
-        if (startIndex == endIndex) return startIndex; 
-        else return _binarySearch(elem, arr, startIndex, median);
+        if (startIndex == endIndex)
+            return startIndex;
+        else
+            return _binarySearch(elem, arr, startIndex, median);
     }
     else {
-        if (startIndex == endIndex) return endIndex+1;
-        else return _binarySearch(elem, arr, median+1, endIndex);
+        if (startIndex == endIndex)
+            return endIndex+1;
+        else
+            return _binarySearch(elem, arr, median+1, endIndex);
     }
 }
 
