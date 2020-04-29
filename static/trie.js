@@ -45,39 +45,41 @@ class Trie {
     // lastPrefixNode: _TrieNode;
     // lastPrefixKey: String;
 
-    constructor(data) {
+    constructor() {
         this.root = new _TrieNode();
         this.lastPrefixNode = this.root;
         this.lastPrefixKey = "";
-        
-        data.sort((pair1, pair2) => (pair1[0] < pair2[0]) ? -1 : 1);
-        for (var i = 0; i < data.length; i++) {
-            var [key, value] = data[i];
-            this._find(key, true).value = value;
-        }
     }
 
     searchPrefix(prefix) {
         var list = [];
-        var curr = root;
-        var prefixNode = this._find(prefix, false);
-        if (prefixNode == null) {
-            return list;
+        var curr = this.root;
+        var prefixNode = this._find(prefix, false, true);
+        if (prefixNode != null) {
+            this._getSubtreeValues(prefixNode, list);
         }
-        console.log(prefixNode);
-        this._search(prefixNode, "", prefix, list);
         return list;
     }
 
-    setValue(key, newValue) {
-        var curNode = this.root;
-        for (var i = 0; i < key.length; i++) {
-            curNode = curNode.getChildForLabel(key[i], false);
-        }
-        curNode.value = newValue;
+    getValue(key, optimize) {
+        var node = this._find(key, false, optimize);
+        return node.value;
     }
 
-    _find (targetKey, createIfNotExist) {
+    update(key, value, optimize) {
+        var node = this._find(key, true, optimize);
+        node.value = value;
+    }
+
+    _find(targetKey, createIfNotExist, optimize) {
+        if (!optimize) {
+            var curNode = this.root;
+            for (var i = 0; i < targetKey.length; i++) {
+                curNode = curNode.getChildForLabel(targetKey[i], true);
+            }
+            return curNode
+        }
+
         // go up sufficiently
         var firstDifferingIndex = _getFirstDifferingIndex(targetKey, this.lastPrefixKey);
         if (firstDifferingIndex > this.lastPrefixKey.length / 2) {
@@ -106,15 +108,15 @@ class Trie {
         return this.lastPrefixNode;
     }
 
-    _search(currNode, str, prefix, list) { 
+    _getSubtreeValues(currNode, list) { 
         if (currNode.value != null) { //if node has value 
-            list.push([prefix + str, currNode.value]);
+            list.push(currNode.value);
         }
         if (currNode.childLabels === undefined) { //leaf node
             return;
         }
         for (var i = 0; i < currNode.childLabels.length; i++) { //recurse into each child
-            this._search(currNode.childNodes[i], str + currNode.childLabels[i], prefix, list);
+            this._getSubtreeValues(currNode.childNodes[i], list);
         }
         
     }
