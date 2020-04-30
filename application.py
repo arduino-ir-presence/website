@@ -49,8 +49,8 @@ def query_rooms():
     query = ("SELECT `name`, `isOccupied` FROM `rooms`")
     cursor.execute(query)
 
-    db_cnx.commit()
     tuples = cursor.fetchall()
+    db_cnx.commit()
     cursor.close()
     return tuples
 
@@ -63,8 +63,8 @@ def name_from_uuid(uuid):
     query = ("SELECT `name` FROM `rooms` WHERE `secretId` = %s")
     cursor.execute(query, (uuid,))
 
-    db_cnx.commit()
     tuples = cursor.fetchall()
+    db_cnx.commit()
     cursor.close()
     return tuples[0][0]
 
