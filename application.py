@@ -83,20 +83,22 @@ def hello_world():
 @app.route('/updateRoomStatus', methods=['POST'])
 def upload_data():
     id = request.form.getlist('secretId')[0]
-    occupied = request.form.getlist('isOccupied')[0]
-    if (not is_valid_uuid(id)):
+    is_occupied_str = request.form.getlist('isOccupied')[0]
+    if not is_valid_uuid(id):
         return "Bad secretId format"
 
-    if (occupied == "true"):
-        update_table(True, id)
-    elif (occupied == "false"):
-        update_table(False, id)
+    if is_occupied_str == "true":
+        is_occupied = True
+    elif is_occupied_str == "false":
+        is_occupied = False
     else: 
         return "Bad isOccupied status"
 
+    update_table(is_occupied, id)
+
     room_name = name_from_uuid(id)
     # global transmission
-    socketio.emit('update', [room_name, occupied])
+    socketio.emit('update', [room_name, is_occupied])
     # Using a tuple as the second argument above causes the two
     # items to be sent as separate arguments to the handler.
     return "Success"
