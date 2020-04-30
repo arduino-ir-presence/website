@@ -19,22 +19,22 @@ var vm = new Vue({
             }
 
             var indexToInsertAvailable = 0;
-            var indexToInsertUnavailable = 0;
+            var indexToInsertOccupied = 0;
             // Count the number of available rooms
             for (var i = 0; i < roomsAlphabetical.length; i++) {
-                if (roomsAlphabetical[i][1]) {
-                    indexToInsertUnavailable++;
+                if (!roomsAlphabetical[i].isOccupied) {
+                    indexToInsertOccupied++;
                 }
             }
             var roomsAvailabeFirst = [];
             roomsAvailabeFirst.length = roomsAlphabetical.length;
             for (var i = 0; i < roomsAlphabetical.length; i++) {
                 var roomToInsert = roomsAlphabetical[i];
-                if (roomToInsert[1]) {
-                    roomsAvailabeFirst[indexToInsertAvailable++] = roomToInsert;
+                if (roomToInsert.isOccupied) {
+                    roomsAvailabeFirst[indexToInsertOccupied++] = roomToInsert;
                 }
                 else {
-                    roomsAvailabeFirst[indexToInsertUnavailable++] = roomToInsert;
+                    roomsAvailabeFirst[indexToInsertAvailable++] = roomToInsert;
                 }
             }
 
@@ -51,9 +51,10 @@ function loadData(roomsData) {
     console.log("Loading Data");
     var tree = new Trie();
     for (var i = 0; i < roomsData.length; i++) {
-        var data = roomsData[i];
-        var key = sanitizeKey(data[0]);
-        tree.update(key, data, true);
+        var roomData = roomsData[i];
+        var room = {"name": roomData[0], "isOccupied": roomData[1]};
+        var key = sanitizeKey(room.name);
+        tree.update(key, room, true);
     }
     vm.tree = tree;
     console.log("Done Loading");
@@ -63,7 +64,9 @@ const socket = io();
 
 socket.on('initialData', loadData);
 
-socket.on('update', function (roomData) {
-    var data = vm.tree.getValue(sanitizeKey(roomData[0]), false);
-    Vue.set(data, 1, roomData[1]);
+socket.on('update', function (inputData) {
+    var [name, newIsOccupied] = inputData;
+    var key = sanitizeKey(name)
+    var room = vm.tree.getValue(key, false);
+    room.isOccupied = newIsOccupied;
 });
