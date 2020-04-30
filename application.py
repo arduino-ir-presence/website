@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_socketio import SocketIO
+import flask_socketio
 from config import dblogin
 
 import mysql.connector
@@ -9,7 +9,7 @@ import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'asdf!'
-socketio = SocketIO(app)
+socketio = flask_socketio.SocketIO(app)
 db_cnx = mysql.connector.connect(**dblogin())
 
 def try_db_login():
@@ -49,7 +49,7 @@ def query_rooms():
     query = ("SELECT `name`, `isOccupied` FROM `rooms`")
     cursor.execute(query)
 
-    tuples = cursor.fetchall()
+    tuples = cursor.fetchall() # a list of tuples
     db_cnx.commit()
     cursor.close()
     return tuples
@@ -95,12 +95,16 @@ def upload_data():
         return "Bad isOccupied status"
 
     room_name = name_from_uuid(id)
-    socketio.emit('update', (room_name, occupied))
+    # global transmission
+    socketio.emit('update', [room_name, occupied])
+    # Using a tuple as the second argument above causes the two
+    # items to be sent as separate arguments to the handler.
     return "Success"
 
 @socketio.on('connect')
 def connect():
-    socketio.emit('initialData', query_rooms())
+    # response to client
+    flask_socketio.emit('initialData', query_rooms())
 
 if __name__ == '__main__':
     socketio.run(app)
